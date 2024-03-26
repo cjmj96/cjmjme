@@ -14,8 +14,6 @@ outputs:
 
 Paginate: 3
 enableRobotsTXT: true
-# disqusShortname: your-disqus-shortname
-# googleAnalytics: G-MEASUREMENT_ID
 
 markup:
   goldmark:
@@ -29,34 +27,11 @@ Menus:
       title: Blog posts
       url: /blogs
       weight: 1
-    # - identifier: gallery
-    #  name: Gallery
-    #  title: Blog posts
-    #  url: /gallery
-    #  weight: 2
-    #Dropdown menu
-    # - identifier: dropdown
-    #   title: Example dropdown menu
-    #   name: Dropdown
-    #   weight: 3
-    # - identifier: dropdown1
-    #   title: example dropdown 1
-    #   name: example 1
-    #   url: /#
-    #   parent: dropdown
-    #   weight: 1
-    # - identifier: dropdown2
-    #   title: example dropdown 2
-    #   name: example 2
-    #   url: /#
-    #   parent: dropdown
-    #   weight: 2
 
 params:
-  #title: "Personal website"
-  description: Text about my cool site
-  #staticPath: "/static/"  # The path to serve the static files from
-  #favicon: "/fav.png"
+  title: "cjmj"
+  description: "A personal portfolio and blog about data science"
+  staticDir: ["/static/", "/themes/hugo-profile/static/"]
   favicon: "/favicon.ico"
 
   # Whether to serve bootstrap css and js files from CDN or not. Can be set to true, "css" or "js" to choose between
@@ -127,7 +102,7 @@ params:
     intro: "Hi, my name is"
     title: "Christian."
     subtitle: "I solve problems with data"
-    content: "With a keen eye for extracting insights from complex datasets. I drive business decision making."
+    content: "With the use of fact-based management I help to drive decisions and add value"
     image: /images/hero.svg
     bottomImage:
       enable: true
@@ -156,19 +131,16 @@ params:
     title: "About Me"
     image: "/images/me.png"
     content: |-
-      I am a software developer with a passion for web development. I have a background in computer science and mathematics, and I have a strong interest in the intersection of technology and art. I am currently working as a software developer at [example org.](https://example.com) in San Francisco, CA.
+      I am a junior data analyst with a passion for data science. I have a background in electronic engineering, and I have a strong interest in the intersection of Computer Science and Statistics.
 
-      I am currently working on a project that will be used to help people find the best way to get around the city.
     skills:
       enable: true
       title: "Here are a few technologies I've been working with recently:"
       items:
-        - "HTML"
-        - "CSS"
-        - "JavaScript"
-        - "React"
-        - "Node"
-        - "Express"
+        - "SQL"
+        - "Python"
+        - "R"
+        - "Tableau"
 
   # Experience
   experience:
