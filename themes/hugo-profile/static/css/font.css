@@ -1,20 +1,34 @@
 
-/* Default font for body */
+/* [> Default font for body <] */
+/* body { */
+	/* font-family: "Lora", serif !important; */
+/* } */
+
+/* [> Default font for body <] */
 body {
-    font-family: "Lora", serif !important;
+	font-family: "Alata", sans-serif !important;
 }
 
-/* secondary font */
+/* [> secondary font <] */
+/* .secondary-font, #secondary-font { */
+	/* font-family: "Lora", serif; */
+/* } */
+
+/* [> secondary font <] */
 .secondary-font, #secondary-font {
-    font-family: "Lora", serif;
+	font-family: "Alata", sans-serif;
 }
 
-/* primary font */
+/* [> primary font <] */
 .primary-font, #primary-font {
-    font-family: "Alata", sans-serif;
+	font-family: "Alata", sans-serif;
 }
 
-/* Default font */
+/* [> Default font <] */
 .default-font, #default-font {
-    font-family: "Roboto", sans-serif;
+	font-family: "Alata", sans-serif;
 }
+/* [> [> Default font <] <] */
+/* .default-font, #default-font { */
+/*     font-family: "Roboto", sans-serif; */
+/* } */

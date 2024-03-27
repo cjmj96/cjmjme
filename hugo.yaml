@@ -22,11 +22,16 @@ markup:
 
 Menus:
   main:
+    - identifier: projects
+      name: Projects
+      title: Projects
+      url: /projects
+      weight: 1
     - identifier: blog
       name: Blog
       title: Blog posts
       url: /blogs
-      weight: 1
+      weight: 2
 
 params:
   title: "cjmj"
