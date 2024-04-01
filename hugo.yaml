@@ -22,16 +22,26 @@ markup:
 
 Menus:
   main:
+    - identifier: about
+      name: About me
+      title: About me
+      url: /#about
+      weight: 1
     - identifier: projects
       name: Projects
       title: Projects
       url: /projects
-      weight: 1
+      weight: 2
     - identifier: blog
       name: Blog
       title: Blog posts
       url: /blogs
-      weight: 2
+      weight: 3
+    - identifier: contact
+      name: Contact
+      title: Contact
+      url: /#contact
+      weight: 4
 
 params:
   title: "cjmj"
@@ -68,21 +78,19 @@ params:
   # If you want to customize the menu, you can change it here
   navbar:
     align: mx-auto # Left: ms-auto | center: mx-auto | right: me-auto | Default: ms-auto
-    # brandLogo: "/logo.png" # Logo for the brand | default is the favicon variable
     showBrandLogo: false # Show brand logo in nav bar | default is true
-    #brandName: "Hugo Profile" # Brand name for the brand | default is the title variable
     disableSearch: true
       # searchPlaceholder: "Search"
     stickyNavBar:
       enable : true
       showOnScrollUp : true
     menus:
-      disableAbout: false
+      disableAbout: true
       disableExperience: true
       disableEducation: true
-      disableProjects: false
+      disableProjects: true
       disableAchievements: true
-      disableContact: false
+      disableContact: true
 
   # Hero
   hero:
@@ -94,7 +102,6 @@ params:
     image: /images/hero.svg
     bottomImage:
       enable: true
-    # roundImage: true # Make hero image circular | default false
     button:
       enable: false
       name: "Resume"
@@ -116,11 +123,11 @@ params:
     title: "About Me"
     image: "/images/me.png"
     content: |-
-      I am a junior data analyst with a passion for data science. I have a background in electronic engineering, and I have a strong interest in the intersection of Computer Science and Statistics.
+      I am a junior data analyst using data to learn more about the world. My expertise covers working the entire data analytics process, including data preparation, processing, analysis, visualization, and communication.
 
     skills:
       enable: true
-      title: "Here are a few technologies I've been working with recently:"
+      title: "To effectively execute these tasks, I am well-versed in a range of technologies:"
       items:
         - "SQL"
         - "Python"
@@ -130,7 +137,6 @@ params:
   # projects
   projects:
     enable: true
-    # title: "Custom Name"
     items:
       - title: Hugo Profile
         content: A highly customizable and mobile first Hugo template for personal portfolio and blog.
@@ -189,7 +195,7 @@ params:
       path: "blogs"
       count: 3
       title: Recent Posts
-      enable: true
+      enable: false
       disableFeaturedImage: false
 
   # List pages like blogs and posts
