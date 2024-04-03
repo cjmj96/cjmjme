@@ -1,7 +1,7 @@
 +++
 title = 'Test Project'
 date = 2024-03-27T10:37:10-06:00
-draft = true
+draft = false
 +++
 # Introduction
 
