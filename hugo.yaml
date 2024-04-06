@@ -1,4 +1,4 @@
-baseURL: "/cjmjme/"
+# baseURL: "/cjmjme/"
 languageCode: "en-us"
 title: "Home - Christian Montenegro"
 theme: hugo-profile
@@ -46,7 +46,7 @@ Menus:
 params:
   title: "cjmj"
   description: "A personal portfolio and blog about data science"
-  staticDir: ["/static/", "/themes/hugo-profile/static/"]
+  # staticDir: ["/static/", "/themes/hugo-profile/static/"]
   favicon: "favicon.ico"
 
   # Whether to serve bootstrap css and js files from CDN or not. Can be set to true, "css" or "js" to choose between
