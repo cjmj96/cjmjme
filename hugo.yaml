@@ -112,11 +112,11 @@ params:
     socialLinks:
       fontAwesomeIcons:
         - icon: fa-brands fa-linkedin
-          url: https://example.com
+          url: https://www.linkedin.com/in/cjmj96
         - icon: fa-brands fa-kaggle
           url: https://www.kaggle.com/christianmontenegro
         - icon: fab fa-github
-          url: https://example.com
+          url: https://github.com/cjmj96
 
   # About
   about:
