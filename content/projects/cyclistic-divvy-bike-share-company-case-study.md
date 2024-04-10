@@ -1,9 +1,8 @@
 ---
 title: 'Cyclistic Divvy bike share company case study'
 date: 2024-04-03T09:08:29-06:00
-draft: true
-link: https://www.kaggle.com/code/christianmontenegro/cyclistic-bike-share-company-case-study
-author: cjmj
+draft: false
+author: Christian Montenegro
 tags:
   - R
   - Data transformation
@@ -11,8 +10,7 @@ tags:
   - Data analysis
   - Data visualization
   - Data storytelling
-#image: ""
-description: ""
+image: /images/Bicycle-sharing-systems_Sweden.jpg
 ---
 
 ## My test content

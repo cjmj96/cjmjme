@@ -50,7 +50,7 @@
 {{- end }}
 
 {{ if not (.Site.Params.navbar.disableSearch | default false) }}
-    <script src="js/search.js"></script>
+	<script src="{{ "js/search.js" | absURL }}"></script>
 {{ end }}
 
 
@@ -86,7 +86,7 @@
 {{ end }}
 
 {{ if (.Site.Params.contact.formspree.enable | default false) }}
-<script src="js/contact.js"></script>
+<script src="{{ "js/contact.js" | absURL }}"></script>
 {{ end }}
 
 {{ if (.Site.Params.customScripts | default false) }}
