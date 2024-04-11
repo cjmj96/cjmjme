@@ -10,7 +10,7 @@ tags:
   - Data analysis
   - Data visualization
   - Data storytelling
-image: /images/Bicycle-sharing-systems_Sweden.jpg
+image: 'bicycle-sharing-systems_sweden.jpg'
 ---
 
 ## My test content

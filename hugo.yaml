@@ -1,4 +1,4 @@
-baseURL: ""
+baseURL: "https://cjmj96.github.io/cjmjme/"
 languageCode: "en-us"
 title: "Home - Christian Montenegro"
 theme: hugo-profile
@@ -67,8 +67,8 @@ params:
   animate: true
 
   theme:
-    # disableThemeToggle: true
-    defaultTheme: "light" # dark
+    disableThemeToggle: false
+    defaultTheme: "light"
 
   font:
     fontSize: 1rem # default: 1rem
