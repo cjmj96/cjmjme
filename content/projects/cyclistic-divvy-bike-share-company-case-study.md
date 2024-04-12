@@ -17,8 +17,11 @@ image: 'bicycle-sharing-systems_sweden.jpg'
 
 ### Goal
 
-This project aim to solve the business task of a fictional bike sharing company called Cyclistic by performing the data analytics life cycle. The data used to support our case comes from the Divvy historical trip data. The insights obtained will help to design a marketing campaign that aims to convert casual users (single or day pass) to users with annual subscription.
+The objective of this project is to use the data analytics life cycle to solve the business task of Cyclistic, a fictional bike-sharing company. I use the Divvy historical trip data to support my case. My insights will help to design a marketing campaign that aims to encourage casual users (single or day pass) to become annual subscribers.
+
+
 ### Process
 
-I begin the data analytic process by obtaining the questions that should drive my analysis. After that, I obtained the data from Divvy, merged the files into a single file with feather format. The data processing involved verifying the data integrity and cleaning data where necessary. In the analysis phase, I ob
+I begin the data analytic process by obtaining the questions that should drive my analysis. After that, I obtained the data from Divvy, merged the files into a single file with feather format. The data processing involved verifying the data integrity and cleaning data where necessary. In the analysis phase, I perform data transformation. After that, I share the insights and conclusions for my analysis. And finally, I proposed my recommendations to drive decision making.
+
 ### Highlights
