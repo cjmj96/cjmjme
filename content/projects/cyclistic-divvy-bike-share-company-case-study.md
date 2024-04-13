@@ -614,10 +614,12 @@ head(cdtd_analyze_sorted_filtered)
 invisible(gc())
 ```
 
-9.3 Transform the data
+### Transform the data
+
+
 I aggregated the data at different granularity levels (montly, daily, and hourly). The aggregations are in line with the objectives proposed in the business task.
 
-I will use the median as central tendency measure for my analysis. This result was obtained examining different central tendency measures, together with skewness and kurtosis. All quantitative variables (ride_distance and ride_length) exhibit a right skewed (√β1>1 ) and leptokurtic (β2>3 ) distribution.
+I will use the median as central tendency measure for my analysis. This result was obtained examining different central tendency measures, together with skewness and kurtosis. All quantitative variables (`ride_distance` and `ride_length`) exhibit a right skewed (√β1>1 ) and leptokurtic (β2>3 ) distribution.
 
 ```r
 # Compute ride distance summary statistics by user type in months
