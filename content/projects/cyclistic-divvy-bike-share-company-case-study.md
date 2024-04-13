@@ -477,3 +477,355 @@ saveRDS(cdtd_process_final, file = "/kaggle/working/cyclistic-divvy-cs-process-p
 # mannually for freeing up memory resources
 invisible(gc())
 ```
+
+## Analyze
+
+In this phase, I answer the proposed first guiding question. The aim was to discover trends or patterns at different levels of granularity. With a 12-month dataset, we have the flexibility to analyze at different intervals. Monthly analysis strikes a balance, capturing short-term fluctuations, recurring patterns, and changes in Cyclistic's usage. Daily analysis provides a more detailed view, capturing variations and specific usage patterns on certain days. Finally, hourly analysis gives the most granular view, capturing daily usage patterns and peak hours for different user types. To achieve this, I organized, formatted, adjusted, and transformed the data.
+
+
+### Organize the data
+
+I performed time-based sorting of the data. This will facilitate the aggregation, visualization, and comparison of users in the share phase.
+
+```r
+# Read data set
+cdtd_analyze <- readRDS("/kaggle/working/cyclistic-divvy-cs-process-phase/cyclistic-divvy-202303-2024-04_processed.rds")
+
+# Sort dataset
+cdtd_analyze_sorted <- cdtd_analyze %>%
+  arrange(started_at, ended_at)
+head(cdtd_analyze_sorted)
+```
+
+I leave only relevant features that will be used to our analysis.
+```r
+# Filter data leaving only useful columns
+cdtd_analyze_sorted_filtered <- cdtd_analyze_sorted %>%
+  select(!c(start_station_name, end_station_name, start_station_id, end_station_id))
+head(cdtd_analyze_sorted_filtered)
+```
+
+### Format and adjust the data
+
+Formatting and adjusting the data ensures data quality, enhances our analysis efficiency, and facilitates visualization. By creating new useful features, we accomplished this. The `ride_distance` feature, records the distance in meters between the start and end points of a ride, calculated using the Vincenty formulae with the inverse method. Furthermore, ride_length measures the time in seconds it took a Cyclistic user to complete a ride. I also created features that provide information about the date of the ride. The month feature specifies the starting month, and day_of_week reveals the day. Lastly, hour captures the hour a ride started.
+
+Calculating the `ride_distance` was a challenging task due to the time and space complexity of the operation. To overcome this, I applied a strategy of chunking. After performing the chunking, I saved all the results in a numeric vector. Following this, I wrote the vector data to the disk. This approach enhanced the efficiency of the task while maintaining the accuracy of the `ride_distance` calculations.
+
+```r
+# Set the chunk size
+chunk_size <- 512
+
+# Initialize an empty vector to store the distances
+distances <- numeric(nrow(cdtd_analyze_sorted_filtered))
+
+# Set the number of iterations to print progress
+n_iterations <- ceiling(nrow(cdtd_analyze_sorted_filtered) / chunk_size)
+
+# Loop through the data in chunks
+for (i in seq(1, nrow(cdtd_analyze_sorted_filtered), chunk_size)) {
+  # Print information about the current chunk
+  cat(sprintf("Processing chunk %d of %d (start = %d, end = %d)\n", ceiling(i / chunk_size),
+    n_iterations, i, min(i + chunk_size - 1, nrow(cdtd_analyze_sorted_filtered))))
+
+  # Extract the current chunk of data
+  chunk <- cdtd_analyze_sorted_filtered[i:(min(i + chunk_size - 1, nrow(cdtd_analyze_sorted_filtered))), ]
+
+  # Convert the start and end points to SpatialPoints objects
+  start_points <- sp::SpatialPoints(cbind(chunk$start_lng, chunk$start_lat), sp::CRS("+proj=longlat +datum=WGS84"))
+  end_points <- sp::SpatialPoints(cbind(chunk$end_lng, chunk$end_lat), sp::CRS("+proj=longlat +datum=WGS84"))
+
+  # Calculate the Vincenty distance using the distVincentyEllipsoid() function from the geosphere package
+  # and store the distances for the current chunk
+  distances[i:(min(i + chunk_size - 1, nrow(cdtd_analyze_sorted_filtered)))] <- geosphere::distVincentyEllipsoid(start_points, end_points)
+}
+
+# Create output directory if it doesn't exists
+if (!file_test("-d", "/kaggle/working/cyclistic-divvy-cs-analyze-phase/")) {
+  dir.create("/kaggle/working/cyclistic-divvy-cs-analyze-phase/", recursive = TRUE)
+}
+
+# Save using saveRDS() function
+saveRDS(distances, file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/ride_distance_2023-03-to-2024-02.rds")
+
+# Trigger garbage collection process
+# mannually for freeing up memory resources
+invisible(gc())
+```
+Before adding the vector data to the original dataset, I loaded it into memory. With the data now accessible, I was then able to incorporate it into the original dataset. This reduced the space complexity greatly.
+```r
+# load using readRDS() function
+ride_distance <- readRDS("/kaggle/working/cyclistic-divvy-cs-analyze-phase/ride_distance_2023-03-to-2024-02.rds")
+
+# Add the distances as an additional column to the original dataset
+cdtd_analyze_sorted_filtered$ride_distance <- ride_distance
+
+# Trigger garbage collection process
+# mannually for freeing up memory resources
+invisible(gc())
+```
+Upon loading the vector data into memory and incorporating it into the original dataset, I was able to streamline the computation process of the remaining features. This step effectively resolved previous computational issues, allowing for a problem-free calculation of these features.
+
+```r
+# Add ride duration
+cdtd_analyze_sorted_filtered$ride_length <- difftime(
+  cdtd_analyze_sorted_filtered$ended_at,
+  cdtd_analyze_sorted_filtered$started_at,
+  units = "secs") %>%
+  as.character %>%
+  as.numeric
+
+# Create a feature representing the month of each ride
+cdtd_analyze_sorted_filtered$month <- lubridate::month(
+  cdtd_analyze_sorted_filtered$started_at,
+  label = FALSE,
+  abbr = FALSE
+)
+
+# Create a feature representing the day of each ride
+cdtd_analyze_sorted_filtered$day_of_week <- lubridate::wday(
+  cdtd_analyze_sorted_filtered$started_at,
+  label= FALSE,
+  abbr = FALSE,
+  week_start = 7
+)
+
+# Create a feature representing the hour of each ride
+cdtd_analyze_sorted_filtered$hour <- lubridate::hour(cdtd_analyze_sorted_filtered$started_at)
+
+
+# Filter to make sure that ride_distance and ride_length
+# have proper values
+cdtd_analyze_sorted_filtered <- cdtd_analyze_sorted_filtered %>%
+  filter(
+    # Filter for ride distance greater than 0
+    (ride_distance > 0) &
+    # A ride should be greater than 0 if not it's
+    # a false start
+    (ride_length > 60)
+  )
+
+dim(cdtd_analyze_sorted_filtered)
+
+# Show data set
+head(cdtd_analyze_sorted_filtered)
+
+# Trigger garbage collection process
+# mannually for freeing up memory resources
+invisible(gc())
+```
+
+9.3 Transform the data
+I aggregated the data at different granularity levels (montly, daily, and hourly). The aggregations are in line with the objectives proposed in the business task.
+
+I will use the median as central tendency measure for my analysis. This result was obtained examining different central tendency measures, together with skewness and kurtosis. All quantitative variables (ride_distance and ride_length) exhibit a right skewed (√β1>1 ) and leptokurtic (β2>3 ) distribution.
+
+```r
+# Compute ride distance summary statistics by user type in months
+# Group the data by 'member_casual', then calculate summary statistics
+ride_distance_by_user_type_and_month_summary_statistics <- cdtd_analyze_sorted_filtered %>%
+ group_by(member_casual, month) %>%
+ select(ride_distance) %>%
+ summarize(
+   min_value = min(ride_distance),
+   Q1 = quantile(ride_distance)[2],
+   median_value = median(ride_distance,),
+   mean_value = mean(ride_distance),
+   stdev = sd(ride_distance),
+   Q3 = quantile(ride_distance)[4],
+   max_value = max(ride_distance),
+   IQR = Q3 - Q1,
+   skewness = moments::skewness(ride_distance),
+   kurtosis = moments::kurtosis(ride_distance)
+ )
+ride_distance_by_user_type_and_month_summary_statistics
+
+# Compute ride distance summary statistics by user type in days
+ride_distance_by_user_type_and_day_of_week_summary_statistics <- cdtd_analyze_sorted_filtered %>%
+ group_by(member_casual, day_of_week) %>%
+ select(ride_distance) %>%
+ summarize(
+   min_value = min(ride_distance),
+   Q1 = quantile(ride_distance)[2],
+   median_value = median(ride_distance,),
+   mean_value = mean(ride_distance),
+   stdev = sd(ride_distance),
+   Q3 = quantile(ride_distance)[4],
+   max_value = max(ride_distance),
+   IQR = Q3 - Q1,
+   skewness = moments::skewness(ride_distance),
+   kurtosis = moments::kurtosis(ride_distance)
+ )
+ride_distance_by_user_type_and_day_of_week_summary_statistics
+
+# Compute ride distance summary statistics by user type in hours
+ride_distance_by_user_type_and_hour_summary_statistics <- cdtd_analyze_sorted_filtered %>%
+ group_by(member_casual, hour) %>%
+ select(ride_distance) %>%
+ summarize(
+   min_value = min(ride_distance),
+   Q1 = quantile(ride_distance)[2],
+   median_value = median(ride_distance,),
+   mean_value = mean(ride_distance),
+   stdev = sd(ride_distance),
+   Q3 = quantile(ride_distance)[4],
+   max_value = max(ride_distance),
+   IQR = Q3 - Q1,
+   skewness = moments::skewness(ride_distance),
+   kurtosis = moments::kurtosis(ride_distance)
+ )
+ride_distance_by_user_type_and_hour_summary_statistics
+
+# Compute ride length summary statistics by user type in months
+ride_length_by_user_type_and_month_summary_statistics <- cdtd_analyze_sorted_filtered %>%
+ group_by(member_casual, month) %>%
+ select(ride_length) %>%
+ summarize(
+   min_value = min(ride_length),
+   Q1 = quantile(ride_length)[2],
+   median_value = median(ride_length),
+   mean_value = mean(ride_length),
+   stdev = sd(ride_length),
+   Q3 = quantile(ride_length)[4],
+   max_value = max(ride_length),
+   IQR = Q3 - Q1,
+   skewness = moments::skewness(ride_length),
+   kurtosis = moments::kurtosis(ride_length)
+ )
+ride_length_by_user_type_and_month_summary_statistics
+
+# Compute ride length summary statistics by user type in days
+ride_length_by_user_type_and_day_of_week_summary_statistics <- cdtd_analyze_sorted_filtered %>%
+ group_by(member_casual, day_of_week) %>%
+ select(ride_length) %>%
+ summarize(
+   min_value = min(ride_length),
+   Q1 = quantile(ride_length)[2],
+   median_value = median(ride_length),
+   mean_value = mean(ride_length),
+   stdev = sd(ride_length),
+   Q3 = quantile(ride_length)[4],
+   max_value = max(ride_length),
+   IQR = Q3 - Q1,
+   skewness = moments::skewness(ride_length),
+   kurtosis = moments::kurtosis(ride_length)
+ )
+ride_length_by_user_type_and_day_of_week_summary_statistics
+
+# Compute ride length summary statistics by user type in hours
+ride_length_by_user_type_and_hour_summary_statistics <- cdtd_analyze_sorted_filtered %>%
+ group_by(member_casual, hour) %>%
+ select(ride_length) %>%
+ summarize(
+   min_value = min(ride_length),
+   Q1 = quantile(ride_length)[2],
+   median_value = median(ride_length),
+   mean_value = mean(ride_length),
+   stdev = sd(ride_length),
+   Q3 = quantile(ride_length)[4],
+   max_value = max(ride_length),
+   IQR = Q3 - Q1,
+   skewness = moments::skewness(ride_length),
+   kurtosis = moments::kurtosis(ride_length)
+ )
+ride_length_by_user_type_and_hour_summary_statistics
+
+# Compute ride frequency by user type in months
+ride_frequency_by_user_type_and_month_df <- cdtd_analyze_sorted_filtered %>%
+  group_by(member_casual, month) %>%
+  summarise(number_of_rides = n()) %>%
+  mutate(prop = number_of_rides / sum(number_of_rides)) %>%
+  mutate(labels = scales::percent(prop))
+ride_frequency_by_user_type_and_month_df
+
+# Compute ride frequency by user type in days
+ride_frequency_by_user_type_and_day_of_week_df <- cdtd_analyze_sorted_filtered %>%
+  group_by(member_casual, day_of_week) %>%
+  summarise(number_of_rides = n()) %>%
+  mutate(prop = number_of_rides / sum(number_of_rides)) %>%
+  mutate(labels = scales::percent(prop))
+ride_frequency_by_user_type_and_day_of_week_df
+
+# Compute ride frequency by user type in hours
+ride_frequency_by_user_type_and_hour_df <- cdtd_analyze_sorted_filtered %>%
+  group_by(member_casual, hour) %>%
+  summarise(number_of_rides = n()) %>%
+  mutate(prop = number_of_rides / sum(number_of_rides)) %>%
+  mutate(labels = scales::percent(prop))
+ride_frequency_by_user_type_and_hour_df
+
+# Compute vehicle usage by user type in months
+bike_type_preference_by_user_type_and_month_df <- cdtd_analyze_sorted_filtered %>%
+  group_by(member_casual, month, rideable_type) %>%
+  summarise(number_of_rides = n()) %>%
+  mutate(prop = number_of_rides / sum(number_of_rides)) %>%
+  mutate(labels = scales::percent(prop))
+bike_type_preference_by_user_type_and_month_df
+
+# Compute vehicle usage by user type in days
+bike_type_preference_by_user_type_and_day_of_week_df <- cdtd_analyze_sorted_filtered %>%
+  group_by(member_casual, day_of_week, rideable_type) %>%
+  summarise(number_of_rides = n()) %>%
+  mutate(prop = number_of_rides / sum(number_of_rides)) %>%
+  mutate(labels = scales::percent(prop))
+bike_type_preference_by_user_type_and_day_of_week_df
+
+# Compute vehicle usage by user type in hours
+bike_type_preference_by_user_type_and_hour_df <- cdtd_analyze_sorted_filtered %>%
+  group_by(member_casual, hour, rideable_type) %>%
+  summarise(number_of_rides = n()) %>%
+  mutate(prop = number_of_rides / sum(number_of_rides)) %>%
+  mutate(labels = scales::percent(prop))
+bike_type_preference_by_user_type_and_hour_df
+
+# Trigger garbage collection process
+# mannually for freeing up memory resources
+invisible(gc())
+```
+
+I write the aggregations on the disk. With the same RDS format used in previous stages.
+
+```r
+# Write aggregations to disk
+saveRDS(ride_distance_by_user_type_and_month_summary_statistics %>%
+  select(member_casual, month, median_value),
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/ride_distance_by_user_type_and_month_2023-03-to-2024-02.rds"
+)
+saveRDS(ride_distance_by_user_type_and_day_of_week_summary_statistics %>%
+  select(member_casual, day_of_week, median_value),
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/ride_distance_by_user_type_and_day_of_week_2023-03-to-2024-02.rds"
+)
+saveRDS(ride_distance_by_user_type_and_hour_summary_statistics %>%
+  select(member_casual, hour, median_value),
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/ride_distance_by_user_type_and_hour_2023-03-to-2024-02.rds"
+)
+saveRDS(ride_length_by_user_type_and_month_summary_statistics %>%
+  select(member_casual, month, median_value),
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/ride_length_by_user_type_and_month_2023-03-to-2024-02.rds"
+)
+saveRDS(ride_length_by_user_type_and_day_of_week_summary_statistics %>%
+  select(member_casual, day_of_week, median_value),
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/ride_length_by_user_type_and_day_of_week_2023-03-to-2024-02.rds"
+)
+saveRDS(ride_length_by_user_type_and_hour_summary_statistics %>%
+  select(member_casual, hour, median_value),
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/ride_length_by_user_type_and_hour_2023-03-to-2024-02.rds"
+)
+saveRDS(ride_frequency_by_user_type_and_month_df,
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/ride_frequency_by_user_type_and_month_2023-03-to-2024-02.rds"
+)
+saveRDS(ride_frequency_by_user_type_and_day_of_week_df,
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/ride_frequency_by_user_type_and_day_of_week_2023-03-to-2024-02.rds"
+)
+saveRDS(ride_frequency_by_user_type_and_hour_df,
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/ride_frequency_by_user_type_and_hour_2023-03-to-2024-02.rds"
+)
+saveRDS(bike_type_preference_by_user_type_and_month_df,
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/bike_type_preference_by_user_type_and_month_2023-03-to-2024-02.rds"
+)
+saveRDS(bike_type_preference_by_user_type_and_day_of_week_df,
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/bike_type_preference_by_user_type_and_day_of_week_2023-03-to-2024-02.rds"
+)
+saveRDS(bike_type_preference_by_user_type_and_hour_df,
+  file = "/kaggle/working/cyclistic-divvy-cs-analyze-phase/bike_type_preference_by_user_type_and_hour_2023-03-to-2024-02.rds"
+)
+```
