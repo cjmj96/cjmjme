@@ -195,24 +195,24 @@ The data is longitudinal due it contains information about different users over 
 
 The data contains 13 columns that gives detailed information on bike rides. The columns can be divided in 3 groups by the content they contain. The first group contains columns identifying ride and bike type (`ride_id` and `bike_type`). The second group identifies when and where a ride started and ended in different information levels. The first level identifies when a user took a ride (`started_at`) and when it ended (`ended_at`). The second level reveals the start (`start_station_name`) and end station (`end_station_name`) a user took a bicycle to perform a ride. The third level uniquely identifies the start and end station for a ride. The fourth level geographically identifies where a ride begin (`start_lat`, `start_lng`) and where a ride ended (`end_lat`, `end_lng`). Finally, the third group only contains one column that indicates whether the rider was a member or a casual user (`member_casual`).
 
-### 8.2 Check data integrity
+### Check data integrity
 
 Determining data integrity is a critical process in data analysis to ensure that the data is both accurate and complete, and remains consistent throughout the analysis. In the following sections, I will demonstrate the application of various techniques designed to achieve this goal. These techniques aim to provide a thorough and effective means of managing and controlling the data during the analysis process.
 
 
-#### 8.2.1 Determine the statistical power of data, hypothesis testing, and margin of error
+#### Determine the statistical power of data, hypothesis testing, and margin of error
 
 As previously mentioned, the sample size is unknown so the statistical power, the feasibility to perform hypothesis testing or report a margin of error is not possible. With this in mind I will only report data variability to provide some sense of uncertainty (spread of data, margin of error (indirectly), confidence intervals (indirectly)).
 
 
-#### 8.2.2 Overcome the challenges of insufficient data
+#### Overcome the challenges of insufficient data
 
 The data collected by Cyclistic is enough (~6,000,000 observations) to solve the business task.
 
 
-#### 8.2.3 Discover data constraints and clean data
+#### Discover data constraints and clean data
 
-##### 8.2.3.1 Corroborate data types
+##### Corroborate data types
 
 In the process of data validation, we checked all features in the dataset to ensure they presented the correct data types. We expected a character data type in 7 out of 13 features, a numerical data type in 4 out of 13 features, and a POSIXct data type in 2 out of 13 features. This was performed by using str function, which listed all the features with their corresponding data types.
 
@@ -223,7 +223,7 @@ str(cdtd_process)
 # mannually for freeing up memory resources
 invisible(gc())
 ```
-##### 8.2.3.2 Validate data ranges
+##### Validate data ranges
 
 After verifying data ranges for most columns, the dataset posess 4,260,116 observations, representing a 25.35% decrease. Only the columns depicting spatial coordinates were left intact because they will require a more complex procedure, explained in detail later.
 ```r
@@ -303,9 +303,6 @@ saveRDS(start_points_in_evanston, file = "/kaggle/working/cyclistic-divvy-cs-pro
 saveRDS(end_points_in_evanston, file = "/kaggle/working/cyclistic-divvy-cs-process-phase/end_points_in_evanston.rds")
 
 # Trigger garbage collection process
-# mannually for freeing up memory resources
-invisible(gc())
-```
 # mannually for freeing up memory resources
 invisible(gc())
 ```
@@ -392,12 +389,12 @@ dim(cdtd_process_filtered_data_ranges)
 # mannually for freeing up memory resources
 invisible(gc())
 ```
-##### 8.2.3.3 Handle missing data
+##### Handle missing data
 
 The presence of missing values in a dataset is universal. When handling inadequately lead to loss of eficiency and bias. First, The extension of information loss is intrinsically linked to the analysis question. Second, the subsets of complete observations may not be representative of the population under study. Restricting analysis to complete records may then lead to biased interpretations. The extent of such bias depends on the statistical behavior of the missing data. So, a formal framework to describe this behaviour is thus fundamental. I show what methodology was applied in the following sections.
 
 
-###### 8.2.3.3.1 Amount of missing data
+###### Amount of missing data
 No missing values was found in the dataset. So we will follow with the next sections.
 ```r
 missing_prop <- naniar::miss_var_summary(cdtd_process_filtered_data_ranges %>%
@@ -409,7 +406,7 @@ missing_prop
 invisible(gc())
 ```
 
-##### 8.2.3.4 Verify data uniqueness
+##### Verify data uniqueness
 
 There are no duplicate entries in the dataset. To do this, I looked at the `ride_id` feature, which uniquely identifies each ride in the dataset. I counted the number of unique `ride_id` values and compared it to the total number of observations in the dataset.
 ```r
@@ -429,7 +426,7 @@ sprintf("Does Cyclistic trip data has unique data?: %s, because it possess %s di
 invisible(gc())
 ```
 
-##### 8.2.3.5 Check cross field conditions
+##### Check cross field conditions
 
 After validating cross field conditions the dataset possess 3,988,632 observations, representing a 6.15% decrease.
 ```r
@@ -459,7 +456,7 @@ dim(cdtd_cross_field_validated)
 invisible(gc())
 ```
 
-##### 8.2.3.6 Removing extra spaces
+##### Removing extra spaces
 
 The `str_squish` function was successfully used to remove extra spaces in features with the character data type. This function operates by identifying extra spaces present at the start of the text, in between words, and at the end of the text. It then replaces these extra spaces with a single space.
 
