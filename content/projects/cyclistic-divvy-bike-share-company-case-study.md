@@ -83,3 +83,81 @@ if (any(installed_packages == FALSE)) {
 # Load all packages
 invisible(lapply(packages, library, character.only = TRUE))
 ```
+
+## Ask
+Moreno has set a clear goal: Design marketing strategies aimed at converting casual riders into annual members. In order to do that, however, the marketing analyst team needs to better understand the answer the following questions:
+
+How do annual members and casual riders use Cyclistic bikes differently? Why would casual riders buy Cyclistic annual memberships? How can Cyclistic use digital media to inﬂuence casual riders to become members? Moreno and her team are interested in analyzing the Cyclistic historical bike trip data to identify trends.
+
+
+## Prepare
+In this phase, I gather the data, describe it, ensure it has the correct format, credibility, and understand its limitations. I use the historical trip data from Cyclistic (a ficticious bike share company),using real data from the company Divvy, for the previous 12 months to tackle this problem [6]. The data was in csv format, which has reading and writing performance limitations. With that in mind, I adopted the rds format. The data is credible, so the insights obtained will be of a prescriptive nature.
+
+
+### Describe data
+The Cyclistic historical trip data records trips performed per month. Each trip is anonymized and includes trip start day and time, trip end day and time, trip start station, trip end station, and rider type. Cyclistic processed the data to remove trips that are taken by staff as they service and inspect the system; and any trips below 60 seconds in length (potentially false starts or users trying to re-dock a bike to ensure it was secure).
+
+The data provided only covers the last 12 months, not representative of the entire population of Cyclistic users and their past behavior. Therefore, it can be considered a sample. So, the insights derived from this data can only be functional under the specific circumstances of the proposed business task.
+
+
+### Move and format data
+
+The rds file storage format, has become a popular choice for data storage due to its demonstrated benefits of speed and file size compared to the csv format as discussed in [7-8]. Finally, we save them as a rds file in a separate directory (`cs1-cyclistic-prepare-phase/`), implemented in the `convert_csv_to_rds` function.
+
+```r
+convert_csv_to_rds <- function(csv_files, output_filepath) {
+  # Initialize an empty data frame
+  combined_data <- data.frame()
+
+  # Loop over each CSV file
+  for (file in csv_files) {
+    # Read the CSV file
+    data <- readr::read_csv(file,
+      na = c(
+        naniar::common_na_strings,
+        naniar::common_na_numbers,
+        "",
+        " "
+      ),
+      skip_empty_rows = TRUE
+    )
+
+    # Concatenate the data to the combined data frame
+    combined_data <- rbind(combined_data, data)
+  }
+
+  # Create output directory if it doesn't exists
+  if (!file_test("-d", output_filepath)) {
+    dir.create(file.path(dirname(output_filepath)), recursive = TRUE)
+  }
+
+  # Save the combined data frame as an RDS file
+  saveRDS(combined_data, file = output_filepath)
+
+  cat("The files located at", dirname(csv_files)[1], "were merged and converted successfully to rds format")
+  invisible(gc())
+}
+
+# Get a list of all files in the directory with the specified format
+csv_files <- list.files("/kaggle/input/divvy-trip-data-03-2023-to-02-2024/",
+  pattern = "*.csv",
+  full.names = TRUE
+)
+
+# Output RDS file path
+output_filepath <- "/kaggle/working/cyclistic-divvy-cs-prepare-phase/cyclistic-divvy-202303-2024-04.rds"
+
+# Call the function
+convert_csv_to_rds(csv_files, output_filepath)
+```
+
+### Check data credibility
+
+The credibility of our data can be determined using the ROCCC system proposed in the certification:
+
+The data is reliable because it was collected by Divvy. The data is original, because it was collected by Divvy. The data is comprehensive because it contains all information needed to answers the guiding questions to produce insights that drives the decision making of the stakeholders. The data is current, because the data has a timeframe that covers the last 12 months (1 year). The data is cited because the data was obtained from the original source.
+
+
+### Understand data limitations
+
+The data possess two main limitations, unknown population size and generalizability, making it difficult to draw conclusions about the entire population. However, the data still holds value for gaining insights under the specific circumstances imposed by the business task.
