@@ -80,3 +80,61 @@ import os
 # to store, process and move asdata fast.
 import pyarrow.feather as feather
 ```
+## Ask
+
+Sršen asks you to analyze smart device usage data in order to gain insight into how consumers use non-Bellabeat smart devices. She then wants you to select one Bellabeat product to apply these insights to in your presentation. These questions will guide your analysis:
+
+What are some trends in smart device usage?
+How could these trends apply to Bellabeat customers?
+How could these trends help influence Bellabeat marketing strategy?
+
+## Prepare
+
+In this phase, I gather the data, describe it, ensure it has the correct format, credibility, and understand its limitations. I use the Fitbit Fitness Tracker data recommended for this case study. The data was in csv format, which has reading and writing performance limitations. With that in mind, I adopted the feather format. There are some problems with the credibility, so the insights obtained from this data will not be of a completely prescriptive nature.
+
+### Describe data
+
+Sršen encourages you to use public data that explores smart device users’ daily habits. She points you to a specific data set, Fitbit Fitness Tracker Data [3]. This Kaggle data set contains personal fitness tracker from thirty fitbit users n=33
+. Thirty three eligible Fitbit users consented to the submission of personal tracker data, including minute-level output for physical activity, heart rate, and sleep monitoring. It includes information about daily activity, steps, and heart rate that can be used to explore users’ habits. There are 18 files (csv format) describing the information before mentioned at diferent granularity levels, collected from 03-12-2016 to 05-12-2016 (two months of observations).
+
+### Move and format data
+
+The feather file storage format, has become a popular choice for data storage due to its demonstrated benefits of speed and file size compared to the csv format as discussed in [4-8]. Finally, we save them as a feather file in a separate directory (`cs2-Bellabit-preparation-step`), implemented in the ``convert_csv_to_feather` function.
+```python
+def convert_csv_to_feather(input_dir, output_dir):
+   # Ensure output directory exists
+   os.makedirs(output_dir, exist_ok=True)
+
+   # Iterate over all files in input directory
+   for filename in os.listdir(input_dir):
+       # Check if file represent data on a daily basis
+       if filename.endswith(".csv"):
+           # Construct full file paths
+           input_file = os.path.join(input_dir, filename)
+           output_file = os.path.join(output_dir, os.path.splitext(os.path.basename(filename))[0] + '.ftr')
+
+           # Read CSV file into DataFrame
+           df = pd.read_csv(input_file)
+
+           # Write DataFrame to Feather file
+           feather.write_feather(df, output_file)
+   print("All the files located at", input_dir, "were succesfully convert to feather format" )
+convert_csv_to_feather(input_dir = "/kaggle/input/fitbit/Fitabase Data 4.12.16-5.12.16/",
+    output_dir = "/kaggle/working/cs2-Bellabit-preparation-step")
+```
+### Check data credibility
+
+The credibility and integrity of our data can be determined using the ROCCC system proposed in the certification:
+
+The data is not reliable because the sample size is insufficient for a quantitative study like this. So, it's important to consider the findings of similar studies, to make an informed estimate of the population proportion and variability.
+
+The data is not original, because it was collected by a third-party provider (Amazon Mechanical Turk).
+The data is comprehensive due to its parameters at diferent levels of granularity, matching those from Bellabit's products.
+
+The data is not current, because the data was collected almost eight years ago.
+
+The data is not cited because the third-party provider not cited the original source.
+
+### Understand data limitations
+
+The data was collected six years ago (outdated) with data collected for over two months and the sample size is insufficient (n=33), leading to an irrelevant and unreliable source to know the true population of users habits wearing smart devices. So this case study will be helpful as a quantitative exploratory study or analysis to provide preliminary trends in smart device usage habits.
