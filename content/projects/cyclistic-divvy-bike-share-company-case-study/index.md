@@ -12,6 +12,7 @@ tags:
   - Data storytelling
 image: 'bicycle-sharing-systems_sweden.jpg'
 mathjax: true
+description: A project showcasing my skills on different stages of the data analytics life cycle.
 ---
 
 ## Summary

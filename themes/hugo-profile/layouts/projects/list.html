@@ -28,7 +28,8 @@
                     </div>
                     <h5 class="card-title bg-transparent">{{ .Title | truncate 50 }}</h5>
                     <div class="card-text bg-transparent secondary-font">
-                        {{ .Summary | truncate 100 | safeHTML }}
+						{{ .Params.description }}
+
                     </div>
                 </div>
                 <div class="card-footer py-3">
