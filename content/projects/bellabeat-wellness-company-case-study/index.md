@@ -35,3 +35,48 @@ Fitbit users tend to support a sedentary lifestyle consistently across different
  lead to long-term negative effects on their health and overall well-being.
 
 [Click here for the code of this project](https://www.kaggle.com/code/christianmontenegro/bellabeat-case-study)
+
+## Introduction
+
+The current and future market of activity tracking, consumer health informatics, and personally generated health data is poised for significant growth and innovation. As technology continues to advance, we can expect to see more sophisticated wearable devices and mobile applications that not only track a wide array of health metrics but also provide actionable insights and personalized health recommendations. The integration of artificial intelligence and machine learning will enable these tools to offer more accurate and predictive analytics, potentially improving individual health outcomes and prompting timely interventions [1-2]. This situation creates a good opportunity to explore and step into this sector. An excellent business profile is Bellabeat.
+
+## Background
+
+Urška Sršen and Sando Mur founded Bellabeat, a high-tech company that manufactures health-focused smart products. Sršen used her background as an artist to develop beautifully designed technology that informs and inspires women around the world. Collecting data on activity, sleep, stress, and reproductive health has allowed Bellabeat to empower women with knowledge about their own health and habits. Since it was founded in 2013, Bellabeat has grown rapidly and quickly positioned itself as a tech-driven wellness company for women.
+
+## Business task
+
+The company's marketing strategy has invested in traditional advertising media, such as radio, out-of-home billboards, print, and television, but focuses on digital marketing extensively. Bellabeat invests year-round in Google Search, maintaining active Facebook and Instagram pages, and consistently engages consumers on Twitter. Additionally, Bellabeat runs video ads on Youtube and display ads on the Google Display Network to support campaigns around key marketing dates.
+
+Bellabeat is a successful small company, but they have the potential to become a larger player in the global smart device market. Urška Sršen, cofounder and Chief Creative Officer of Bellabeat, believes that analyzing smart device fitness data could help unlock new growth opportunities for the company.
+
+## Scenario
+
+This capstone project involves a junior data analyst working for Bellabeat in the marketing analyst team. The solution will utilize the six stages proposed in the Google Data Analytics Professional Certificate: Ask, Prepare, Process, Analyze, Share, and Act. These stages define how data is generated, collected, processed, used, and analyzed to achieve business goals. Furthermore, the project will apply these stages to the specific context of Bellabeat's marketing analyst team. The results of this project will aid stakeholders in making informed decisions.
+```python
+## Load required libraries
+# Library for the Python programming language, adding support for large,
+# multi-dimensional arrays and matrices, along with a large collection
+# of high-level mathematical functions to operate on these arrays
+import numpy as np
+
+# Library for data manipulation and analysis.
+import pandas as pd
+
+# A comprehensive library for creating static, animated,
+# and interactive visualizations in Python
+import matplotlib.pyplot as plt
+
+# Data visualization library based on matplotlib. It provides a high-level
+# interface for drawing attractive and informative statistical graphics.
+import seaborn as sns
+
+# Library that provides a portable way of using operating system
+# dependent functionality
+import os
+
+# Library that provides a Python API for the Arrow C++ library
+# that contains a set of technologies that enable big data systems
+# to store, process and move asdata fast.
+import pyarrow.feather as feather
+```
