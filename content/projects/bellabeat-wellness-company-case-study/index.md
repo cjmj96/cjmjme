@@ -622,3 +622,319 @@ data_to_export = {
 # Write all feather files to the directory
 write_feather_files(data_to_export, directory_path)
 ```
+## Analyze
+
+In this phase, I answer the proposed first guiding question. The aim was to discover trends or patterns at different levels of granularity. I choose daily and hourly data to have a balance between observing broad trends and short-term fluctuations (in-depth behavioral insights) in physical activity and health metrics. I achieved this by organizing, formatting, adjusting, and transforming data.
+
+### Organize the data
+
+I performed time-based sorting of the data. This will facilitate the aggregation, visualization, and comparison of users to find population-level trends.
+
+```python
+# Load processed data
+daily_activity_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/daily_activity_processed.ftr")
+sleep_day_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/sleep_day_processed.ftr")
+weight_log_info_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/weight_log_info_processed.ftr")
+hourly_intensities_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/hourly_intensities_processed.ftr")
+hourly_steps_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/hourly_steps_processed.ftr")
+hourly_calories_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/hourly_calories_processed.ftr")
+minute_intensities_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/minute_intensities_processed.ftr")
+minute_steps_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/minute_steps_processed.ftr")
+minute_METs_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/minute_METs_processed.ftr")
+minute_calories_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/hourly_calories_processed.ftr")
+minute_sleep_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/minute_sleep_processed.ftr")
+heartrate_seconds_data = load_dataframe("/kaggle/working/cs2-Bellabit-process-step/heartrate_seconds_processed.ftr")
+
+# Store dataframes in a list
+processed_dataframes = [daily_activity_data, sleep_day_data,
+    weight_log_info_data, hourly_intensities_data,
+    hourly_steps_data, hourly_calories_data, minute_intensities_data,
+    minute_steps_data,  minute_METs_data, minute_calories_data,
+    minute_sleep_data, heartrate_seconds_data
+]
+
+def sort_dataframes_by_time(dfs):
+  """
+  Sorts multiple DataFrames by their datetime columns in ascending order.
+
+  Args:
+    dfs (list of pd.DataFrame): A list of DataFrames to sort.
+
+  Returns:
+    None (modifies the DataFrames in-place)
+  """
+
+  for df in dfs:
+    # Identify datetime columns
+    datetime_cols = df.select_dtypes(include=['datetime64']).columns
+
+    # Sort in-place for each datetime column
+    for col in datetime_cols:
+      df.sort_values(by=col, ascending=True, inplace=True)
+      print(f"First 5 values of sorted '{col}': {df[col][0:5]}")  # Print sorted values
+
+sort_dataframes_by_time(processed_dataframes)
+
+# Filter data leaving only useful columns
+daily_activity_data_filtered = daily_activity_data.drop(["TotalDistance"], axis = 1)
+sleep_day_data_filtered = sleep_day_data[["Id", "SleepDay", "TotalMinutesAsleep", "TotalTimeInBed"]]
+weight_log_info_data_filtered = weight_log_info_data[["Id", "Date", "BMI"]]
+
+print(daily_activity_data_filtered.head())
+print(sleep_day_data_filtered.head())
+print(weight_log_info_data_filtered.head())
+```
+
+### Format and adjust the data
+
+Formatting and adjusting the data ensures data quality, enhances our analysis efficiency, and facilitates visualization. By creating new useful features, we accomplished this. The DayOfWeek feature keeps track of the day when an observation for a user was recorded. SleepEfficiency represents the rate a person spends time asleep and the total time dedicated to trying to sleep. The SleepLatency feature represents the time a person takes to fall asleep. We took an observation for a user at a specific hour, indicated by Hour.
+
+I re-sampled the heart rate data with measures at 5s intervals to other time intervals. A low level of granularity fits best with the project’s objectives. For that reason, I conducted the resampling for hours and days.
+```python
+def add_day_of_week_column(df, date_col):
+  """
+  Adds a new column 'DayOfWeek' to a DataFrame, containing the day of the
+  week numbers (0-6, Sunday-Saturday) based on a specified
+  date column. Aligns with the US custom week start (Sunday=0).
+
+  Args:
+    df (pd.DataFrame): The DataFrame to modify.
+    date_col (str): The name of the column containing date-time values.
+
+  Raises:
+    ValueError: If the date column cannot be converted to datetime format.
+  """
+
+  try:
+    # Ensure the date column is in datetime format
+    df.loc[:, date_col] = pd.to_datetime(df[date_col])
+  except ValueError as e:
+    raise ValueError(f"Cannot convert '{date_col}' column to datetime format.") from e
+
+  # Create a new column for the day of the week numbers
+  df.loc[:, 'DayOfWeek'] = df[date_col].dt.dayofweek
+
+  # Adjust the values to align with US custom week start (Sunday=0)
+  df.loc[:, 'DayOfWeek'] = (df['DayOfWeek'] + 1) % 7
+
+add_day_of_week_column(daily_activity_data_filtered, "ActivityDate")
+add_day_of_week_column(sleep_day_data_filtered, "SleepDay")
+add_day_of_week_column(weight_log_info_data_filtered, "Date")
+
+# Calculate the sleep efficiency as the ratio of total time asleep to total time in bed
+# and then convert it to a percentage
+sleep_day_data_filtered["SleepEfficiency"] = (sleep_day_data_filtered["TotalMinutesAsleep"] / sleep_day_data_filtered["TotalTimeInBed"]) *  100
+
+# Calculate the sleep latency
+sleep_day_data_filtered['SleepLatency'] = sleep_day_data_filtered["TotalTimeInBed"] - sleep_day_data_filtered["TotalMinutesAsleep"]
+
+print(daily_activity_data.head())
+print(sleep_day_data_filtered.head())
+print(weight_log_info_data_filtered.head())
+
+def add_hour_column(df, date_col):
+  """
+  Adds a new column 'Hour' to a DataFrame, containing the hour extracted from a specified date column.
+
+  Args:
+    df (pd.DataFrame): The DataFrame to modify.
+    date_col (str): The name of the column containing date-time values.
+
+  Raises:
+    ValueError: If the date column cannot be converted to datetime format.
+  """
+
+  try:
+    # Ensure the date column is in datetime format
+    df.loc[:, date_col] = pd.to_datetime(df[date_col])
+  except ValueError as e:
+    raise ValueError(f"Cannot convert '{date_col}' column to datetime format.") from e
+
+  # Create a new column for the hour values
+  df['Hour'] = df[date_col].dt.hour
+
+add_hour_column(hourly_intensities_data, "ActivityHour")
+add_hour_column(hourly_steps_data, "ActivityHour")
+add_hour_column(hourly_calories_data, "ActivityHour")
+
+print(hourly_intensities_data.head())
+print(hourly_steps_data.head())
+print(hourly_calories_data.head())
+
+def resample_heart_rate(data, interval):
+  """
+  Resamples heart rate data from 5s to a given interval.
+
+  Args:
+    data: A pandas DataFrame with columns 'Id', 'Time', and 'Value'.
+    interval: The desired time interval in seconds (e.g., 60 for 1 minute).
+
+  Returns:
+    A pandas DataFrame with resampled data.
+  """
+  # Group data by ID and resample by interval
+  resampled_data = (
+      data.groupby("Id")
+      .resample(interval, on="Time")
+      .agg(mean_value=("Value", "mean"))
+      .reset_index()
+  )
+
+  return resampled_data
+# Resample to 1 hour intervals
+hourly_heartrate_data = resample_heart_rate(heartrate_seconds_data, "H")
+
+# Resample to 1 day intervals
+daily_heartrate_data = resample_heart_rate(heartrate_seconds_data, "D")
+
+# Check results
+print(hourly_heartrate_data.head())
+print(hourly_heartrate_data["Id"].nunique())
+print(daily_heartrate_data.head())
+print(daily_heartrate_data["Id"].nunique())
+
+# Add DayOfWeek column for daily heart rate data
+add_day_of_week_column(daily_heartrate_data, "Time")
+
+# Add Hour column for hourly heart rate data
+add_hour_column(hourly_heartrate_data, "Time")
+
+# Check results
+print(daily_heartrate_data["DayOfWeek"].head())
+print(hourly_heartrate_data["Hour"].head())
+```
+### Transform the data
+
+I aggregated the data at different granularity levels (daily and hourly). The choice for this granularity levels is due I condense large datasets into meaningful summaries, reducing time and space complexity. This enables statistical analysis to highlight relationships that might be invisible in raw data. The daily data contains information about activity levels, calories burned, sleep patterns, weight logs, and heart rate measures. As for the hourly data, our knowledge is limited to activity levels, calories burned, and heart rate measurements. The aggregations are in line with the objectives proposed in the business task.
+
+```python
+def compute_mean_by_group(df, group_col, agg_cols, agg_func='mean'):
+    """
+    Compute the mean of specified columns by a grouping column.
+
+    Parameters:
+    df (DataFrame): The DataFrame to compute the mean from.
+    group_col (str): The column to group by.
+    agg_cols (list): A list of columns to compute the mean of.
+    agg_func (str): The aggregation function to use (default is 'mean').
+
+    Returns:
+    DataFrame: A DataFrame with the computed means.
+    """
+    return df.groupby([group_col]).agg(**{col: (col, agg_func) for col in agg_cols})
+
+# Mean time by activity level through the week
+daily_mean_time_activity_level = compute_mean_by_group(
+    daily_activity_data_filtered,
+    "DayOfWeek",
+    ["SedentaryMinutes", "LightlyActiveMinutes", "FairlyActiveMinutes", "VeryActiveMinutes"]
+)
+
+# Convert to hour scale
+daily_mean_time_activity_level.iloc[:, :] /= 60
+
+# Rename columns
+daily_mean_time_activity_level.rename(columns={'SedentaryMinutes': 'SedentaryTime',
+    'LightlyActiveMinutes': 'LightlyActiveTime',
+    'FairlyActiveMinutes': 'ModeratelyActiveTime', 'VeryActiveMinutes': 'VeryActiveTime'},
+     inplace=True)
+print(weekly_mean_time_activity_level)
+
+# Mean distance by activity level through the week
+daily_mean_activity_level_distance = compute_mean_by_group(
+    daily_activity_data_filtered,
+    "DayOfWeek",
+    ["LightActiveDistance", "ModeratelyActiveDistance", "VeryActiveDistance"]
+)
+
+# Rename column
+daily_mean_activity_level_distance.rename(columns = {"LightActiveDistance": "LightlyActiveDistance"},
+    inplace = True)
+print(daily_mean_activity_level_distance)
+
+# Mean steps taken through the week
+daily_mean_steps_performed = compute_mean_by_group(
+    daily_activity_data_filtered,
+    "DayOfWeek",
+    ["TotalSteps"]
+)
+print(daily_mean_steps_performed)
+
+
+# Mean calories burned through the week
+daily_mean_calories_burned = compute_mean_by_group(
+    daily_activity_data_filtered,
+    "DayOfWeek",
+    ["Calories"]
+)
+print(daily_mean_calories_burned)
+
+# Mean time asleep through the week
+daily_mean_total_time_asleep = compute_mean_by_group(
+    sleep_day_data_filtered,
+    "DayOfWeek",
+    ["TotalMinutesAsleep"]
+)
+
+# Convert to hour scale
+daily_mean_total_time_asleep.iloc[:, :] /= 60
+
+# Rename columns
+daily_mean_total_time_asleep.rename(columns = {"TotalMinutesAsleep": "TotalTimeAsleep"}, inplace = True)
+print(daily_mean_total_time_asleep)
+
+# Mean sleep efficiency through the week
+daily_mean_sleep_efficiency = compute_mean_by_group(
+    sleep_day_data_filtered,
+    "DayOfWeek",
+    ["SleepEfficiency"]
+)
+print(daily_mean_sleep_efficiency)
+
+# Mean sleep latency through the week
+daily_mean_sleep_latency = compute_mean_by_group(
+    sleep_day_data_filtered,
+    "DayOfWeek",
+    ["SleepLatency"]
+)
+print(daily_mean_sleep_latency)
+
+# Mean heart rate through the week
+daily_mean_heartrate = compute_mean_by_group(
+    daily_heartrate_data,
+    "DayOfWeek",
+    ["mean_value"]
+)
+print(daily_mean_heartrate)
+
+# Mean intensity through the day
+hourly_mean_intensity = compute_mean_by_group(
+    hourly_intensities_data,
+    "Hour",
+    ["AverageIntensity"]
+)
+print(hourly_mean_intensity)
+
+hourly_mean_steps_performed = compute_mean_by_group(
+    hourly_steps_data,
+    "Hour",
+    ["StepTotal"]
+)
+print(hourly_mean_steps_performed)
+
+# Mean calories burned through the day
+hourly_mean_calories_burned = compute_mean_by_group(
+    hourly_calories_data,
+    "Hour",
+    ["Calories"]
+)
+print(hourly_mean_calories_burned)
+
+# Mean heart rate through the day
+hourly_mean_heartrate = compute_mean_by_group(
+    hourly_heartrate_data,
+    "Hour",
+    ["mean_value"]
+)
+print(hourly_mean_heartrate)
+```
