@@ -938,3 +938,1077 @@ hourly_mean_heartrate = compute_mean_by_group(
 )
 print(hourly_mean_heartrate)
 ```
+
+## Share
+
+In this phase, I unveiled my insights to the audience. To make that happen, I ensure my insights are communicated to the audience in a digestible way with good visualizations and a captivating story.
+
+### Daily trends
+
+The daily analysis performed provides insights for longer-term trends and patterns given the data limitations. Unique aspects of the data divide the insights presented at this level.
+
+#### Trends in activity levels
+
+They typically stay inactive throughout the week. They spend on average 17.5 hours per day in sedentary activities representing a 87.4% of all tracked time [16]. This is followed by lightly active, moderately active, and very active, with an average of 2.4 (12.4%), 0.020 (0.10%), and 0.01 (0.07%) hours per day, respectively. This reveals that Fitbit users could present some physical and mental problems associated with this lifestyle [17].
+
+```python
+# Colors for different activity levels
+COLOR_SCALE = [
+    "#E8807E", # Sedentary
+    "gray", # Lightly active
+    "gray", # Fairly active
+    "gray", # Very active
+]
+
+# y-axis legend positions
+LABEL_Y = [
+    daily_mean_time_activity_level.loc[daily_mean_time_activity_level.index.max(), "SedentaryTime"],  # Sedentary
+    daily_mean_time_activity_level.loc[daily_mean_time_activity_level.index.max(), "LightlyActiveTime"], # Lightly active
+    daily_mean_time_activity_level.loc[daily_mean_time_activity_level.index.max(), "ModeratelyActiveTime"], # Moderately active
+    daily_mean_time_activity_level.loc[daily_mean_time_activity_level.index.max(), "VeryActiveTime"] # Very active
+]
+
+# Set horizontal start of legend
+x_start = daily_mean_time_activity_level.index.max()
+
+# Set horizontal end of legend
+x_end =  daily_mean_time_activity_level.index.max()
+
+# Set plot and legend pad
+PAD = 0.1
+
+# Set plot names
+plot_names = ("Sedentary", "Lightly active", "Moderately active", "Very active")
+
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+for idx, activity_level in enumerate(daily_mean_time_activity_level):
+    color = COLOR_SCALE[idx]
+    ax.plot(daily_mean_time_activity_level.index, daily_mean_time_activity_level[activity_level], color = color, linewidth = 3)
+
+# Add labels for highlighted countries honly
+for idx, group in enumerate(daily_mean_time_activity_level):
+    # Add color to
+    color = COLOR_SCALE[idx]
+
+    # Activity level legend
+    text = plot_names[idx]
+
+    # Vertical start of line
+    y_start = LABEL_Y[idx]
+
+    # Vertical end of line
+    y_end = LABEL_Y[idx] if idx in (0, 1, 3) else LABEL_Y[idx] + 1
+
+    # Add line based on three points
+    ax.plot(
+        [x_start, (x_start + x_end - PAD) / 2 , x_end - PAD],
+        [y_start, y_end, y_end],
+        color=color,
+        alpha=0.5,
+        ls="dashed"
+    )
+
+    # Add activity level text
+    ax.text(
+        x_end,
+        y_end,
+        text,
+        color = color,
+        fontsize = 11,
+        weight = "normal",
+        va = "center"
+    )
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_time_activity_level.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis = 'both', which = 'major', labelsize = 11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean time (hr)', fontsize = 11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.12,  0.85)
+# Set plot title
+ax.set_title("Daily activity level time allocation",
+    x= 0.14, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 31). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.1, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize = 10)
+fig.suptitle('Fitbit users typically stay inactive',x = 0.31, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+![ A test image](daily-activity-level-time-allocation.png)
+
+They are more inactive from Monday to Friday with a mean of 17.7 hours per day. This suggest that Fitbit users are more sedentary on weekdays with a 4.06% more time compared to weekend with 16.98 hours.
+```python
+# Define condition
+condition = daily_mean_time_activity_level.index.isin(list(range(1, 6)))
+
+# Create a dataframe with the rows where the condition is met
+mean_time_activity_level_on_weekend = daily_mean_time_activity_level.loc[condition]
+
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+# Plot the entire range
+ax.plot(daily_mean_time_activity_level.index, daily_mean_time_activity_level["SedentaryTime"], color = "lightgray", linewidth = 3, zorder = 1)
+
+# Plot data where the condition is met
+ax.plot(mean_time_activity_level_on_weekend.index, mean_time_activity_level_on_weekend['SedentaryTime'], color = "#E8807E", linewidth = 3, zorder=2)
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_time_activity_level.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis = 'both', which = 'major', labelsize = 11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean time (hr)', fontsize = 11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.12,  0.85)
+# Set plot title
+ax.set_title("Sedentary activity over the week",
+    x= 0.14, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 31). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.1, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize = 10)
+fig.suptitle('Fibit users are more inactive on weekday',x = 0.38, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+![ A test image](sedentary-activity-over-the-week.png)
+
+When analyzing the distance traveled at different activity levels, we observe that most activities they are engaged with are at a light intensity level with an average of 2.23 km (95.45%). This is followed by moderately active, and very active, with an average of 0.05 (2.4%), and 0.04 (2.1%) km per day, respectively.
+
+```python
+# Colors for different activity levels
+COLOR_SCALE = [
+    "#E8807E", # Lightly active
+    "gray", # Moderately active
+    "gray", # Very active
+]
+
+# y-axis legend positions
+LABEL_Y = [
+    daily_mean_activity_level_distance.loc[daily_mean_activity_level_distance.index.max(), "LightlyActiveDistance"],  # Lightly active
+    daily_mean_activity_level_distance.loc[daily_mean_activity_level_distance.index.max(), "ModeratelyActiveDistance"], # Moderately active
+    daily_mean_activity_level_distance.loc[daily_mean_activity_level_distance.index.max(), "VeryActiveDistance"], # Very active
+]
+
+# Set horizontal start of legend
+x_start = daily_mean_activity_level_distance.index.max()
+
+# Set horizontal end of legend
+x_end =  daily_mean_activity_level_distance.index.max()
+
+# Set plot and legend pad
+PAD = 0.1
+
+# Set plot names
+plot_names = ("Lightly active", "Moderately active", "Very active")
+
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+for idx, activity_level in enumerate(daily_mean_activity_level_distance):
+    color = COLOR_SCALE[idx]
+    ax.plot(daily_mean_activity_level_distance.index, daily_mean_activity_level_distance[activity_level], color = color, linewidth = 3)
+
+# Add labels for highlighted countries honly
+for idx, group in enumerate(daily_mean_activity_level_distance):
+    # Add color to
+    color = COLOR_SCALE[idx]
+
+    # Activity level legend
+    text = plot_names[idx]
+
+    # Vertical start of line
+    y_start = LABEL_Y[idx]
+
+    # Vertical end of line
+    y_end = LABEL_Y[idx]
+
+    # Add line based on three points
+    ax.plot(
+        [x_start, (x_start + x_end - PAD) / 2 , x_end - PAD],
+        [y_start, y_end, y_end],
+        color=color,
+        alpha=0.5,
+        ls="dashed"
+    )
+
+    # Add activity level text
+    ax.text(
+        x_end,
+        y_end,
+        text,
+        color=color,
+        fontsize=11,
+        weight="normal",
+        va="center"
+    )
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_activity_level_distance.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis='both', which='major', labelsize=11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean distance (km)', fontsize=11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.1,  0.80)
+# Set plot title
+ax.set_title("Daily distance traveled at different activity levels.",
+    x= 0.31, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+# Add a footnote below of the chart
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 31). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.12, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize=10)
+fig.suptitle('Fitbit users engage in activities mostly at a light intensity level',x = 0.6, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+![ A test image](daily-distance-traveled-at-different-activity-levels.png)
+
+Weekends see a slight increase (9.91%) in the average distance traveled (2.4 km) for light activity compared to weekdays (2.1 km).
+
+```python
+# Define condition
+condition = daily_mean_activity_level_distance.index.isin((0, 6))
+
+# Create a dataframe with the rows where the condition is met
+mean_activity_level_distance_on_weekend = daily_mean_activity_level_distance.loc[condition]
+
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+# Plot the entire range
+ax.bar(daily_mean_activity_level_distance.index, daily_mean_activity_level_distance["LightlyActiveDistance"], color = "lightgray", linewidth = 3, zorder = 1)
+
+# Plot data where the condition is met
+ax.bar(mean_activity_level_distance_on_weekend.index, mean_activity_level_distance_on_weekend['LightlyActiveDistance'], color = "#E8807E", linewidth = 3, zorder=2)
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_activity_level_distance.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis = 'both', which = 'major', labelsize = 11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean distance (km)', fontsize = 11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.12,  0.85)
+# Set plot title
+ax.set_title("Light activity over the week",
+    x= 0.1, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 31). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.1, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize = 10)
+fig.suptitle('Fitbit users travel more on weekend at light activity',x = 0.49, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+![ A test image](light-activity-over-the-week.png)
+
+#### Trends in performed steps
+
+The average total number of steps registered throughout the week is 3422. This amount is insufficient to see health benefits. The minimum number of steps required to see some benefits is 4000 per day, with 10,000 steps or more being optimal [18-19].
+
+```python
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+# Set y-axis limits
+ax.set_ylim([0, daily_mean_steps_performed["TotalSteps"].max() + 50])
+
+# Plot line chart of mean total time asleep on the week
+ax.plot(daily_mean_steps_performed.index, daily_mean_steps_performed["TotalSteps"], color = "#E8807E" , linewidth = 3)
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_steps_performed.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis='both', which='major', labelsize=11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean steps taken per day', fontsize=11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.15,  0.71)
+# Set plot title
+ax.set_title("Total steps taken over the course of the week",
+    x= 0.22, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+# Add a footnote below of the chart
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 31). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.09, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize=10)
+fig.suptitle('Fitbit users are not meeting the minimum step requirement', x = 0.53, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+![ A test image](total-steps-taken-over-the-course-of-the-week.png)
+
+Weekends see a light increase (12.87%) in the average steps performed (3768 steps) compared to weekdays (3283 steps).
+
+```python
+# Define condition
+condition = daily_mean_steps_performed.index.isin((0, 6))
+
+# Create a dataframe with the rows where the condition is met
+mean_steps_performed_on_weekend =  daily_mean_steps_performed.loc[condition]
+
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+# Plot the entire range
+ax.bar(daily_mean_steps_performed.index, daily_mean_steps_performed["TotalSteps"], color = "lightgray", linewidth = 3, zorder = 1)
+
+# Plot data where the condition is met
+ax.bar(mean_steps_performed_on_weekend.index, mean_steps_performed_on_weekend['TotalSteps'], color = "#E8807E", linewidth = 3, zorder=2)
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_steps_performed.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis = 'both', which = 'major', labelsize = 11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean steps taken per day', fontsize = 11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.12,  0.76)
+# Set plot title
+ax.set_title("Total steps taken over the course of the week",
+    x= 0.25, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 31). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.1, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize = 10)
+fig.suptitle('Fitbit users walk more on weekend',x = 0.33, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+![ A test image](total-steps-taken-over-the-course-of-the-week-weekend.png)
+
+#### Trends in energy expenditure
+
+Fitbit users maintain consistent levels of energy expenditure throughout the day, indicating stable activity levels.
+
+```python
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+# Set y-axis limits
+ax.set_ylim([0, daily_mean_calories_burned["Calories"].max() + 50])
+
+# Plot line chart of mean total time asleep on the week
+ax.plot(daily_mean_calories_burned.index, daily_mean_calories_burned["Calories"], color = "#E8807E" , linewidth = 3)
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_calories_burned.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis='both', which='major', labelsize=11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean calories burned per day', fontsize=11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.15,  0.71)
+# Set plot title
+ax.set_title("Total energy expenditure over the course of the week",
+    x= 0.29, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+# Add a footnote below of the chart
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 31). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.09, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize=10)
+fig.suptitle('Fitbit users maintained consistent calorie expenditure',x = 0.48, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+![ A test image](total-energy-expenditure-over-the-course-of-the-week.png)
+
+Weekends see a slight increase (4.67%) in the average calories burned (1934) compared to weekdays (1844).
+
+```python
+# Define condition
+condition = daily_mean_calories_burned.index.isin((0, 6))
+
+# Create a dataframe with the rows where the condition is met
+mean_calories_burned_on_weekend = daily_mean_calories_burned.loc[condition]
+
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+# Plot the entire range
+ax.bar(daily_mean_calories_burned.index, daily_mean_calories_burned["Calories"], color = "lightgray", linewidth = 3, zorder = 1)
+
+# Plot data where the condition is met
+ax.bar(mean_calories_burned_on_weekend.index, mean_calories_burned_on_weekend['Calories'], color = "#E8807E", linewidth = 3, zorder=2)
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_steps_performed.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis = 'both', which = 'major', labelsize = 11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean calories burned per day', fontsize = 11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.12,  0.74)
+# Set plot title
+ax.set_title("Total energy expenditure over the course of the week",
+    x= 0.32, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 31). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.1, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize = 10)
+fig.suptitle('Fitbit users spend more energy on weekend',x = 0.41, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+![ A test image](total-energy-expenditure-over-the-course-of-the-week-weekend.png)
+
+#### Trends in sleep patterns
+
+They consistently sleep the minimum recommended amount for a healthy person throughout the week (7 hours) [20-21]. However, on weekends, they tend to sleep 5.88% more (7.31 hours) than on weekdays (6.88 hours).
+
+```python
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+ax.set_ylim([0, daily_mean_total_time_asleep["TotalTimeAsleep"].max() + 1])
+# Plot line chart of mean total time asleep on the week
+ax.plot(daily_mean_total_time_asleep.index, daily_mean_total_time_asleep["TotalTimeAsleep"], color = "#E8807E" , linewidth = 3)
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_total_time_asleep.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis='both', which='major', labelsize=11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean time (hr)', fontsize=11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.1,  0.85)
+# Set plot title
+ax.set_title("Total sleep time over the course of the week",
+    x= 0.26, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+# Add a footnote below of the chart
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 24). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.1, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize=10)
+fig.suptitle('Fitbit users sleep about as much as recommended',x = 0.49, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+![ A test image](total-sleep-time-over-the-course-of-the-week.png)
+
+The sleep efficiency throughout the week is excellent, over 90%. However, for a good assessment of sleep quality, one should pair it with sleep latency [22-24].
+
+```python
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+ax.set_ylim([0, daily_mean_sleep_efficiency["SleepEfficiency"].max() + 10])
+# Plot line chart of mean total time asleep on the week
+ax.plot(daily_mean_sleep_efficiency.index, daily_mean_sleep_efficiency["SleepEfficiency"], color = "#E8807E" , linewidth = 3)
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_sleep_efficiency.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis='both', which='major', labelsize=11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Sleep efficiency', fontsize=11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.15,  0.84)
+# Set plot title
+ax.set_title("Sleep efficiency over the course of the week",
+    x= 0.21, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+# Add % symbol into y-axis ticks
+ax.yaxis.set_major_formatter('{x:1.0f}%')
+# Add a footnote below of the chart
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 24). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.1, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize=10)
+fig.suptitle('Fitbit users have an excellent sleep efficiency',x = 0.40, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+![ A test image](sleep-efficiency-over-the-course-of-the-week.png)
+
+Abnormal sleep latency exists throughout the week. Ideally, it should take no more than 30 minutes. This result complements the previous finding, concluding that sleep quality should be improved [22][26-27].
+```python
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+ax.set_ylim([0, daily_mean_sleep_latency["SleepLatency"].max() + 10])
+# Plot line chart of mean total time asleep on the week
+ax.plot(daily_mean_sleep_latency.index, daily_mean_sleep_latency["SleepLatency"], color = "#E8807E" , linewidth = 3)
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_sleep_latency.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis='both', which='major', labelsize=11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean time (min)', fontsize=11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.1,  0.85)
+# Set plot title
+ax.set_title("Sleep latency over the course of the week",
+    x= 0.24, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+# Add a footnote below of the chart
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 24). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.12, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize = 10)
+fig.suptitle('Fitbit users have a high sleep latency',x = 0.36, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+
+![ A test image](sleep-latency-over-the-course-of-the-week.png)
+
+Weekends see a light increase (19.72%) in the average sleep latency (46 min) compared to weekdays (37 min).
+
+```python
+# Define condition
+condition = daily_mean_sleep_latency.index.isin((0, 6))
+
+# Create a dataframe with the rows where the condition is met
+mean_sleep_latency_on_weekend = daily_mean_sleep_latency.loc[condition]
+
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+# Plot the entire range
+ax.bar(daily_mean_sleep_latency.index, daily_mean_sleep_latency["SleepLatency"], color = "lightgray", linewidth = 3, zorder = 1)
+
+# Plot data where the condition is met
+ax.bar(mean_sleep_latency_on_weekend.index, mean_sleep_latency_on_weekend['SleepLatency'], color = "#E8807E", linewidth = 3, zorder=2)
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_sleep_latency.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis = 'both', which = 'major', labelsize = 11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean time (min)', fontsize = 11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.12,  0.79)
+# Set plot title
+ax.set_title("Sleep latency over the course of the week",
+    x= 0.23, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 31). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.1, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize = 10)
+fig.suptitle('Fitbit users spent more time to sleep on weekend',x = 0.47, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+![ A test image](sleep-latency-over-the-course-of-the-week-weekend.png)
+
+#### Trends in heart data
+
+The resting heart rate throughout the week falls into normal ranges. I assume this measure because Fitbit users spend most of their time in sedentary activity [28-31].
+
+```python
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+ax.set_ylim([0, daily_mean_heartrate["mean_value"].max() + 5])
+# Plot line chart of mean total time asleep on the week
+ax.plot(daily_mean_heartrate.index, daily_mean_heartrate["mean_value"], color = "#E8807E" , linewidth = 3)
+
+# Change x-axis tick labels from discrete to categorical
+ax.set_xticks(daily_mean_heartrate.index, labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis='both', which='major', labelsize=11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Day of the week", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.2, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean beats per minute', fontsize=11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.1,  0.80)
+# Set plot title
+ax.set_title("Resting heart rate over the course of the week",
+    x= 0.28, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+# Add a footnote below of the chart
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 14). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.13, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize = 10)
+fig.suptitle('Fitbit users have a normal resting heart rate',x = 0.43, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+![ A test image](resting-heart-rate-over-the-course-of-the-week.png)
+
+### Hourly trends
+
+The hourly analysis performed, provide insights for intraday cycles or micro-events given the data limitations. Unique aspects of the data divide the insights presented at this level.
+
+#### Trends in activity levels
+
+Fitbit users have a pattern of increasing their activity levels throughout the day, but they always end up being sedentary at some point. To measure this, a numeric value is assigned ranging from 0 to 4. An activity level between 0 and 1 (inclusive) is considered sedentary, while 1 to 2 is lightly active. The range from 2 to 3 is moderately active, and 3 to 4 is very active.
+```python
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+# Set y-axis limits
+ax.set_ylim([0, hourly_mean_intensity["AverageIntensity"].max() + 0.1])
+
+# Plot line chart of mean total time asleep on the week
+ax.plot(hourly_mean_intensity.index, hourly_mean_intensity["AverageIntensity"], color = "#E8807E" , linewidth = 3)
+
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis='both', which='major', labelsize=11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Hour", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.13, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean intensity', fontsize=11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.1,  0.80)
+# Set plot title
+ax.set_title("Intensity exhibited over the day",
+    x= 0.15, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+# Add a footnote below of the chart
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 33). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.12, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize=10)
+fig.suptitle('Fitbit users presented an intensity of a sedentary lifestyle',x = 0.556, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+![ A test image](intensity-exhibited-over-the-day.png)
+
+#### Trends in energy expenditure
+
+The energy expenditure is increased throughout the day. This trends start at 5:00 a.m (morning) and rapidly decreases after 7:00 p.m (early evening).
+
+```python
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+# Set y-axis limits
+ax.set_ylim([0, hourly_mean_calories_burned["Calories"].max() + 1])
+
+# Plot line chart of mean total time asleep on the week
+ax.plot(hourly_mean_calories_burned.index, hourly_mean_calories_burned["Calories"], color = "#E8807E" , linewidth = 3)
+
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis='both', which='major', labelsize=11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Hour", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.13, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean calories burned per hour', fontsize=11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.1,  0.72)
+# Set plot title
+ax.set_title("Total energy expenditure over the day",
+    x = 0.2, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+# Add a footnote below of the chart
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 33). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.12, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize=10)
+fig.suptitle('Fitbit users burned more calories between morning and early evening',x = 0.66, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+![ A test image](total-energy-expenditure-over-the-day.png)
+
+#### Trends in heart data
+
+The heart rate is increased throughout the day. They fall in normal ranges. This trends start and end at the same time period of others measures in this level of granularity.
+
+```python
+# Initialize layout
+fig, ax = plt.subplots(figsize = (6, 6))
+
+# Set y-axis limits
+ax.set_ylim([0, hourly_mean_heartrate["mean_value"].max() + 1])
+
+# Plot line chart of mean total time asleep on the week
+ax.plot(hourly_mean_heartrate.index, hourly_mean_heartrate["mean_value"], color = "#E8807E" , linewidth = 3)
+
+# Set x-axis label title color on gray
+ax.xaxis.label.set_color('gray')
+# Set y-axis label title color on gray
+ax.yaxis.label.set_color('gray')
+# Change axis label size
+ax.tick_params(axis='both', which='major', labelsize=11, colors = "gray")
+# Set x-axis title
+ax.set_xlabel("Hour", fontsize = 11)
+# Set x-axis title position
+ax.xaxis.set_label_coords(0.13, -0.1)
+# Set y-axis title
+ax.set_ylabel('Mean beats per minute', fontsize=11)
+# Set y-axis title position
+ax.yaxis.set_label_coords(-0.1,  0.73)
+# Set plot title
+ax.set_title("Resting heart rate over the day",
+    x= 0.14, fontdict={"fontsize": 12, "color": "gray"})
+# Set the color of each spine
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
+# Eliminate spines at the top of the plot
+ax.spines['top'].set_visible(False)
+# Eliminate spines at the right of the plot
+ax.spines['right'].set_visible(False)
+# Add a footnote below of the chart
+ax.annotate('Data source: Fitbit Fitness Tracker Data (n = 14). Data from 4/12/2016 to 5/12/2016.',
+            xy = (1.12, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            color = "gray",
+            fontsize=10)
+fig.suptitle('Fitbit users increased their heart rate between morning to early evening', x = 0.69, y = 0.96,  fontsize=16, color = "#E8807E")
+plt.show()
+```
+
+![ A test image](resting-heart-rate-over-the-day.png)
+
+### Conclusions
+
+One of my insights suggests that Fitbit users tend to support a sedentary lifestyle over the week. Weekdays show a particularly pronounced tendency for this trend. Similarly, this same pattern persists throughout the day, with minor variations across the day.
+
+Fitbit users tend to cover most of their distance over the week by engaging in activities at a light-intensity level. On the weekends, they travel slightly larger distances on the same activity level.
+
+Fitbit users walk below the recommended amount per day to have a healthy life. On weekends there is a slight increase but it is always below the recommended amount.
+
+Fitbit users spend consistent levels of energy throughout the week, indicating stable activity levels. This is slightly more prevalent on the weekend. The majority of energy consumed throughout the day occurs from morning to early evening.
+
+Fitbit users sleep the minimum recommended amount for a healthy person across all ages throughout the week. They tend to sleep slightly more on weekends. Additionally, they display excellent sleep efficiency; however, when their sleep latency is taken into account, it suggest poor sleep hygiene.
+
+Fitbit users tend to have a heart rate that falls into normal ranges. Similarly, this same pattern persists over the day, with minor variation across the day.
+
+All this results suggest a preliminary trend that could potentially lead to long-term negative effects on their health and overall well-being.
+
+## Act
+
+Here are the recommendations based on my insights:
+
+The marketing campaign needs to focus on people with sedentary lifestyles, it needs to highlight the benefits of monitoring health-related measures to prevent long-term effects on their health using Bellabeat products.
+
+Use the identified trends to create custom profiles for Bellabeat users. The Bellabeat app should produce health-related reports at different periods. Weekly reports can highlight what measurements collected by Bellabeat products in that period are not enough for good health and well-being. Daily reports can do the same.
+
+Based on the profiles, infer customer needs and preferences. For example, send notifications when activity levels are increasing during the morning. These notifications remind the users to meet their personalized daily goals, helping them to be accountable for achieving their long-term health-related goals. Another example could be that customers who exercise in the evening could prefer content related to post-work activities.
+
+Collect data from Bellabeat customers with a larger sample size over a prolonged period. With that fulfilled, the limitations of this exploratory analysis will complement future analysis to provide a final prescriptive analysis.
+
+If we implement the above recommendation, we should analyze goal-related metrics (KPIs) before and after executing the marketing strategy. This analysis will determine the effectiveness of the new strategy in achieving the marketing team’s goals.
+
+## References
+
+[1] D. C. Lavallee et al., “mHealth and patient generated health data: stakeholder perspectives on opportunities and barriers for transforming healthcare,” mHealth, vol. 6, pp. 8–8, Jan. 2020, doi: https://doi.org/10.21037/mhealth.2019.09.17 (accessed Jan. 14, 2024).
+
+[2] E. Austin et al., “Use of patient-generated health data across healthcare settings: implications for health systems,” JAMIA Open, vol. 3, no. 1, pp. 70–76, Nov. 2019, doi: https://doi.org/10.1093/jamiaopen/ooz065 (accessed Jan. 14, 2024).
+
+[3] Arashnic, “FitBit Fitness Tracker Data,” Kaggle. https://www.kaggle.com/datasets/arashnic/fitbit (accessed Jan. 15, 2024).
+
+[4] “A comparative study among CSV, feather, pickle, and parquet for loading/saving data,” LinkedIn. https://www.linkedin.com/pulse/comparative-study-among-csv-feather-pickle-parquet-loyola-gonz%C3%A1lez (accessed Jan. 15, 2024).
+
+[5] W. McKinney, “Columnar File Performance Check-in for Python and R: Parquet, Feather, and FST · Ursa Labs,” Ursa Labs, Oct. 07, 2019. https://ursalabs.org/blog/2019-10-columnar-perf/ (accessed Jan. 15, 2024).
+
+[6] Darkonaut, “What are the differences between feather and parquet?,” Stack Overflow. https://stackoverflow.com/questions/48083405/what-are-the-differences-between-feather-and-parquet (accessed Jan. 15, 2024).
+
+[7] Som, “Different types of data formats CSV, Parquet, and Feather,” MLearning.ai, Jun. 14, 2022. https://medium.com/mlearning-ai/different-types-of-data-formats-csv-parquet-and-feather-b9f975e461d4 (accessed Jan. 15, 2024).
+
+[8] D. Radečić, “CSV Files for Storage? No Thanks. There’s a Better Option,” Medium, Mar. 23, 2022. https://towardsdatascience.com/csv-files-for-storage-no-thanks-theres-a-better-option-72c78a414d1d (accessed Jan. 15, 2024).
+
+[9] Fitabase, “Fitabase Data Dictionaries - Fitabase Knowledge Base,” Fitabase, https://www.fitabase.com/resources/knowledge-base/exporting-data/data-dictionaries/ (accessed Jan. 25, 2024).
+
+[10] Compendium of Physical Activities, “2024 Adult Compendium of Physical Activities (Inactivity)", Dec. 22, 2023. https://pacompendium.com/inactivity/ (accessed Jan. 25, 2024).
+
+[11] S. D. Herrmann et al., “2024 Adult Compendium of Physical Activities: A third update of the energy costs of human activities,” Journal of Sport and Health Science, vol. 13, no. 1, pp. 6–12, Jan. 2024, doi: https://doi.org/10.1016/j.jshs.2023.10.010 (accessed Jan. 25, 2024).
+
+[12] Y. Dong and C.-Y. J. Peng, “Principled missing data methods for researchers,” SpringerPlus, vol. 2, no. 1, May 2013, doi: https://doi.org/10.1186/2193-1801-2-222 (accessed Jan. 17, 2024).
+
+[13] J. R. Carpenter and M. Smuk, “Missing data: A statistical framework for practice,” Biometrical Journal, Feb. 2021, doi: https://doi.org/10.1002/bimj.202000196 (accessed Jan. 17, 2024).
+
+[14] D. A. Newman, “Missing Data,” Organizational Research Methods, vol. 17, no. 4, pp. 372–411, Sep. 2014, doi: https://doi.org/10.1177/1094428114548590 (accessed Jan. 17, 2024).
+
+[15] R. A. Hughes, J. Heron, J. A. C. Sterne, and K. Tilling, “Accounting for missing data in statistical analyses: multiple imputation is not always the answer,” International Journal of Epidemiology, vol. 48, no. 4, pp. 1294–1304, Mar. 2019, doi: https://doi.org/10.1093/ije/dyz032 (accessed Jan. 17, 2024).
+
+[16] M. S. Tremblay et al., “Sedentary Behavior Research Network (SBRN) – Terminology Consensus Project process and outcome,” International Journal of Behavioral Nutrition and Physical Activity, vol. 14, no. 1, Jun. 2017, doi: https://doi.org/10.1186/s12966-017-0525-8 (accessed Feb. 18, 2024).
+
+[17] J. H. Park, J. H. Moon, H. J. Kim, M. H. Kong, and Y. H. Oh, “Sedentary lifestyle: Overview of Updated Evidence of Potential Health Risks,” Korean Journal of Family Medicine, vol. 41, no. 6, pp. 365–373, 2020, doi: https://doi.org/10.4082/kjfm.20.0165 (accessed Feb. 18, 2024).
+
+[18] Z. Weiner, “That Whole ‘10,000 Steps a Day’ Thing Is Kind of a Scam,” Well+Good, Jun. 22, 2022. https://www.wellandgood.com/how-many-steps-should-i-take-a-day/ (accessed Feb. 19, 2024).
+
+[19] K. S. Hall et al., “Systematic review of the prospective association of daily step counts with risk of mortality, cardiovascular disease, and dysglycemia,” International Journal of Behavioral Nutrition and Physical Activity, vol. 17, no. 1, Jun. 2020, doi: https://doi.org/10.1186/s12966-020-00978-9 (accessed Feb. 19, 2024).
+
+[20] N. F. Watson et al., “Recommended Amount of Sleep for a Healthy Adult: A Joint Consensus Statement of the American Academy of Sleep Medicine and Sleep Research Society,” Journal of Clinical Sleep Medicine, vol. 11, no. 6, Jun. 2015, doi: https://doi.org/10.5664/jcsm.4758 (accessed Feb. 18, 2024).
+
+[21] S. Paruthi et al., “Consensus Statement of the American Academy of Sleep Medicine on the Recommended Amount of Sleep for Healthy Children: Methodology and Discussion,” Journal of Clinical Sleep Medicine, vol. 12, no. 11, pp. 1549–1561, Nov. 2016, doi: https://doi.org/10.5664/jcsm.6288 (accessed Feb. 18, 2024).
+
+[22] J. Kahn, “Sleep Efficiency: Why It Is Necessary but Not Sufficient,” RISE. https://www.risescience.com/blog/sleep-efficiency (accessed Feb. 19, 2024).
+
+[23] D. L. Reed and W. P. Sacco, “Measuring Sleep Efficiency: What Should the Denominator Be?,” Journal of Clinical Sleep Medicine, vol. 12, no. 02, pp. 263–266, Feb. 2016, doi: https://doi.org/10.5664/jcsm.5498 (accessed Feb. 19, 2024).
+
+[24] S. Desjardins, S. Lapierre, C. Hudon, and A. Desgagné, “Factors involved in sleep efficiency: a population-based study of community-dwelling elderly persons,” Sleep, vol. 42, no. 5, Feb. 2019, doi: https://doi.org/10.1093/sleep/zsz038 (accessed Feb. 19, 2024).
+
+[25] D. W. Jung, S. H. Hwang, G. S. Chung, Y.-J. Lee, D.-U. Jeong, and K. S. Park, “Estimation of sleep onset latency based on the blood pressure regulatory reflex mechanism,” IEEE journal of biomedical and health informatics, vol. 17, no. 3, pp. 534–544, May 2013, doi: https://doi.org/10.1109/jbhi.2013.2257816 (accessed Feb. 19, 2024).
+
+[26] M. Fabbri, A. Beracci, M. Martoni, D. Meneo, L. Tonetti, and V. Natale, “Measuring Subjective Sleep Quality: A Review,” International Journal of Environmental Research and Public Health, vol. 18, no. 3, p. 1082, Jan. 2021, doi: https://doi.org/10.3390/ijerph18031082 (accessed Feb. 19, 2024).
+
+[27] M. Ohayon et al., “National Sleep Foundation’s sleep quality recommendations: first report,” Sleep Health, vol. 3, no. 1, pp. 6–19, Feb. 2017, doi: https://doi.org/10.1016/j.sleh.2016.11.006 (accessed Feb. 19, 2024).
+
+[28] H. LeWine, “What your heart rate is telling you,” Harvard Health, Dec. 11, 2015. https://www.health.harvard.edu/heart-health/what-your-heart-rate-is-telling-you#:~:text=Although%20the%20official%20normal%20resting (accessed Feb. 19, 2024).
+
+[29] American Heart Association, “All about Heart Rate (pulse),” American Heart Association, Jul. 31, 2015. https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse (accessed Feb. 19, 2024).
+
+[30] J. Shaikh, P. S. Uttekar, and D. Jacob, “What Is a Good Heart Rate for My Age? Normal & Dangerous,” MedicineNet. https://www.medicinenet.com/what_is_a_good_heart_rate_for_my_age/article.htm (accessed Feb. 19, 2024).
+
+[31] British Heart Foundation, “Your heart rate,” British Heart Foundation, 2021. https://www.bhf.org.uk/informationsupport/how-a-healthy-heart-works/your-heart-rate#:~:text=A%20normal%20adult%20heart%20rate (accessed Feb. 19, 2024).
